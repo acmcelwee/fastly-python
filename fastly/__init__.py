@@ -743,6 +743,42 @@ class FastlyConnection(object):
 		return FastlyService(self, content)
 
 
+	def update_dictionary_items_batch(self, service_id, dictionary_id, **kwargs):
+		"""Batch update dictionary items."""
+		item_types = [
+			{
+				"dict_name": "create_items",
+				"fastly_op": "create"
+			},
+			{
+				"dict_name": "update_items",
+				"fastly_op": "update"
+			},
+			{
+				"dict_name": "delete_items",
+				"fastly_op": "delete"
+			}
+		]
+		items = []
+		for item_type in item_types:
+			for item in kwargs.get(item_type['dict_name'], []):
+				items.append({
+					"op": item_type['fastly_op'],
+					"item_key": item['key'],
+					"item_value": item['value']
+				})
+		body = json.dumps({"items": items})
+		content = self._fetch(
+			"/service/%s/dictionary/%s/items" % (service_id, dictionary_id),
+			method="PATCH",
+			body=body,
+			headers={
+				"Content-Type": "application/json"
+			}
+		)
+		return self._status(content)
+
+
 	def delete_service(self, service_id):
 		"""Delete a service."""
 		content = self._fetch("/service/%s" % service_id, method="DELETE")
@@ -1543,6 +1579,33 @@ class FastlyVCL(FastlyObject, IServiceVersionObject):
 		"content",
 		"main",
 		"vcl",
+	]
+
+
+class FastlyDictionaryObject(FastlyObject, IServiceVersionObject):
+	"""A Dictionary Item is a component of a Fastly Edge Dictionary"""
+	FIELDS = [
+		"id",
+		"name",
+		"service_id",
+		"created_at",
+		"deleted_at",
+		"updated_at",
+		"version",
+		"write_only",
+	]
+
+
+class FastlyDictionaryItemObject(FastlyObject, IServiceVersionObject):
+	"""A Dictionary Item is a component of a Fastly Edge Dictionary"""
+	FIELDS = [
+		"item_key",
+		"item_value",
+		"dictionary_id",
+		"service_id",
+		"created_at",
+		"deleted_at",
+		"updated_at",
 	]
 
 
