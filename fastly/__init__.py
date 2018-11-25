@@ -743,6 +743,19 @@ class FastlyConnection(object):
 		return FastlyService(self, content)
 
 
+	def create_dictionary(self, service_id, version_number, dictionary_name):
+		"""Update a service."""
+		body = self._formdata({
+			"name": dictionary_name
+		})
+		content = self._fetch("/service/%s/version/%s/dictionary" % (service_id, version_number), method="POST", body=body)
+		return FastlyDictionary(self, content)
+
+
+	def get_dictionary_items(self, service_id, dictionary_id):
+		content = self._fetch("/service/%s/dictionary/%s/items" % (service_id, dictionary_id))
+		return map(lambda x: FastlyDictionaryItem(self, x), content)
+
 	def update_dictionary_items_batch(self, service_id, dictionary_id, **kwargs):
 		"""Batch update dictionary items."""
 		item_types = [
@@ -1582,7 +1595,7 @@ class FastlyVCL(FastlyObject, IServiceVersionObject):
 	]
 
 
-class FastlyDictionaryObject(FastlyObject, IServiceVersionObject):
+class FastlyDictionary(FastlyObject, IDateStampedObject):
 	"""A Dictionary Item is a component of a Fastly Edge Dictionary"""
 	FIELDS = [
 		"id",
@@ -1596,7 +1609,7 @@ class FastlyDictionaryObject(FastlyObject, IServiceVersionObject):
 	]
 
 
-class FastlyDictionaryItemObject(FastlyObject, IServiceVersionObject):
+class FastlyDictionaryItem(FastlyObject, IDateStampedObject):
 	"""A Dictionary Item is a component of a Fastly Edge Dictionary"""
 	FIELDS = [
 		"item_key",
