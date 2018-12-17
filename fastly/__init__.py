@@ -743,18 +743,61 @@ class FastlyConnection(object):
 		return FastlyService(self, content)
 
 
+	def delete_service(self, service_id):
+		"""Delete a service."""
+		content = self._fetch("/service/%s" % service_id, method="DELETE")
+		return self._status(content)
+
+
+	def list_domains_by_service(self, service_id):
+		"""List the domains within a service."""
+		content = self._fetch("/service/%s/domain" % service_id, method="GET")
+		return map(lambda x: FastlyDomain(self, x), content)
+
+
+	def purge_service(self, service_id):
+		"""Purge everything from a service."""
+		content = self._fetch("/service/%s/purge_all" % service_id, method="POST")
+		return self._status(content)
+
+
+	def purge_service_by_key(self, service_id, key):
+		"""Purge a particular service by a key."""
+		content = self._fetch("/service/%s/purge/%s" % (service_id, key), method="POST")
+		return self._status(content)
+
+
 	def create_dictionary(self, service_id, version_number, dictionary_name):
-		"""Update a service."""
+		"""Create a dictionary."""
 		body = self._formdata({
 			"name": dictionary_name
-		})
-		content = self._fetch("/service/%s/version/%s/dictionary" % (service_id, version_number), method="POST", body=body)
+		}, FastlyDictionary.FIELDS)
+		content = self._fetch("/service/%s/version/%d/dictionary" % (service_id, version_number), method="POST", body=body)
 		return FastlyDictionary(self, content)
+
+
+	def get_dictionary(self, service_id, version_number, name):
+		"""Get a dictionary by name from a particular service and version."""
+		content = self._fetch("/service/%s/version/%d/dictionary/%s" % (service_id, version_number, urllib.quote(name)))
+		return FastlyDictionary(self, content)
+
+
+	def delete_dictionary(self, service_id, version_number, name):
+		"""Delete a dictionary for a particular service and version."""
+		content = self._fetch("/service/%s/version/%d/dictionary/%s" % (service_id, version_number, urllib.quote(name)), method="DELETE")
+		return self._status(content)
+
+
+	def list_dictionaries(self, service_id, version_number):
+		"""List the dictionaries within a service"""
+		content = self._fetch("/service/%s/version/%s/dictionary" % (service_id, version_number))
+		return map(lambda x: FastlyDictionary(self, x), content)
 
 
 	def get_dictionary_items(self, service_id, dictionary_id):
 		content = self._fetch("/service/%s/dictionary/%s/items" % (service_id, dictionary_id))
 		return map(lambda x: FastlyDictionaryItem(self, x), content)
+
 
 	def update_dictionary_items_batch(self, service_id, dictionary_id, **kwargs):
 		"""Batch update dictionary items."""
@@ -789,30 +832,6 @@ class FastlyConnection(object):
 				"Content-Type": "application/json"
 			}
 		)
-		return self._status(content)
-
-
-	def delete_service(self, service_id):
-		"""Delete a service."""
-		content = self._fetch("/service/%s" % service_id, method="DELETE")
-		return self._status(content)
-
-
-	def list_domains_by_service(self, service_id):
-		"""List the domains within a service."""
-		content = self._fetch("/service/%s/domain" % service_id, method="GET")
-		return map(lambda x: FastlyDomain(self, x), content)
-
-
-	def purge_service(self, service_id):
-		"""Purge everything from a service."""
-		content = self._fetch("/service/%s/purge_all" % service_id, method="POST")
-		return self._status(content)
-
-
-	def purge_service_by_key(self, service_id, key):
-		"""Purge a particular service by a key."""
-		content = self._fetch("/service/%s/purge/%s" % (service_id, key), method="POST")
 		return self._status(content)
 
 
@@ -1228,6 +1247,12 @@ class FastlyObject(object):
 			return self._data.get(name, None)
 		raise AttributeError()
 
+	def __getitem__(self, name):
+		cls = self.__class__
+		if name in cls.FIELDS:
+			return self._data.get(name, None)
+		raise AttributeError()
+
 	def __str__(self):
 		return str(self._data)
 	
@@ -1524,7 +1549,7 @@ class FastlyService(FastlyObject):
 		"customer_id",
 		"publish_key",
 		"active_version",
-		"versions"
+		"versions",
 		"comment",
 	]
 
@@ -1658,6 +1683,10 @@ class FastlyVersion(FastlyObject, IServiceObject, IDateStampedObject):
 	@property
 	def domains(self):
 		return dict([ (d.name, d) for d in self._conn.list_domains(self.service_id, int(self.number))])
+
+	@property
+	def dictionaries(self):
+		return dict([ (d.name, d) for d in self._conn.list_dictionaries(self.service_id, int(self.number))])
 
 	@property
 	def directors(self):
