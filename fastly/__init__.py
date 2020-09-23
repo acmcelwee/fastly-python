@@ -26,12 +26,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from datetime import datetime
 import httplib2
 import json
 import re
 import urllib
-
+from datetime import datetime
 from version import __version__
 
 FASTLY_SCHEME = "https"
@@ -168,8 +167,8 @@ class FastlyConnection(object):
 			"healthcheck": healthcheck,
 			"comment": comment,
 			"override_host": override_host,
-                        "ssl_cert_hostname": ssl_cert_hostname,
-                        "ssl_sni_hostname": ssl_sni_hostname,
+			"ssl_cert_hostname": ssl_cert_hostname,
+			"ssl_sni_hostname": ssl_sni_hostname,
 			"min_tls_version": min_tls_version,
 			"max_tls_version": max_tls_version,
 		}, FastlyBackend.FIELDS)
@@ -271,8 +270,8 @@ class FastlyConnection(object):
 
 	def update_condition(self, service_id, version_number, name_key, **kwargs):
 		"""Updates the specified condition."""
-                if '_type' in kwargs:
-                        kwargs['type'] = kwargs['_type']
+		if '_type' in kwargs:
+			kwargs['type'] = kwargs['_type']
 		body = self._formdata(kwargs, FastlyCondition.FIELDS)
 		content = self._fetch("/service/%s/version/%d/condition/%s" % (service_id, version_number, urllib.quote(name_key, safe='')), method="PUT", body=body)
 		return FastlyCondition(self, content)
@@ -356,8 +355,8 @@ class FastlyConnection(object):
 
 	def update_director(self, service_id, version_number, name_key, **kwargs):
 		"""Update the director for a particular service and version."""
-                if '_type' in kwargs:
-                        kwargs['type'] = kwargs['_type']
+		if '_type' in kwargs:
+			kwargs['type'] = kwargs['_type']
 		body = self._formdata(kwargs, FastlyDirector.FIELDS)
 		content = self._fetch("/service/%s/version/%d/director/%s" % (service_id, version_number, urllib.quote(name_key, safe='')), method="PUT", body=body)
 		return FastlyDirector(self, content)
@@ -376,7 +375,7 @@ class FastlyConnection(object):
 		"""Establishes a relationship between a Backend and a Director. The Backend is then considered a member of the Director and can be used to balance traffic onto."""
 		content = self._fetch("/service/%s/version/%d/director/%s/backend/%s" % (service_id, version_number, director_name, urllib.quote(backend_name, safe='')), method="POST")
 		return FastlyDirectorBackend(self, content)
-	
+
 	def delete_director_backend(self, service_id, version_number, director_name, backend_name):
 		"""Deletes the relationship between a Backend and a Director. The Backend is no longer considered a member of the Director and thus will not have traffic balanced onto it from this Director."""
 		content = self._fetch("/service/%s/version/%d/director/%s/backend/%s" % (service_id, version_number, director_name, urllib.quote(backend_name, safe='')), method="DELETE")
@@ -495,8 +494,8 @@ class FastlyConnection(object):
 
 	def update_header(self, service_id, version_number, name_key, **kwargs):
 		"""Modifies an existing Header object by name."""
-                if '_type' in kwargs:
-                        kwargs['type'] = kwargs['_type']
+		if '_type' in kwargs:
+			kwargs['type'] = kwargs['_type']
 		body = self._formdata(kwargs, FastlyHeader.FIELDS)
 		content = self._fetch("/service/%s/version/%d/header/%s" % (service_id, version_number, urllib.quote(name_key, safe='')), method="PUT", body=body)
 		return FastlyHeader(self, content)
@@ -668,7 +667,7 @@ class FastlyConnection(object):
 		}, FastlyService.FIELDS)
 		content = self._fetch("/service", method="POST", body=body)
 		return FastlyService(self, content)
-		
+
 	def list_services(self):
 		"""List Services."""
 		content = self._fetch("/service")
@@ -959,7 +958,7 @@ class FastlyConnection(object):
 		}, FastlyVersion.FIELDS)
 		content = self._fetch("/service/%s/version" % service_id, method="POST", body=body)
 		return FastlyVersion(self, content)
-		
+
 	def list_versions(self, service_id):
 		content = self._fetch("/service/%s/version" % service_id)
 		return map(lambda x: FastlyVersion(self, x), content)
@@ -1041,7 +1040,7 @@ class FastlyConnection(object):
 	def delete_version(self, service_id, version_number):
 		content = self._fetch("/service/%s/version/%d" % (service_id, version_number), method="DELETE")
 		return self._status(content)
-	
+
 	def _status(self, status):
 		if not isinstance(status, FastlyStatus):
 			status = FastlyStatus(self, status)
@@ -1063,7 +1062,7 @@ class FastlyConnection(object):
 	def _fetch(self, url, method="GET", body=None, headers={}):
 		hdrs = {}
 		hdrs.update(headers)
-		
+
 		print("Fetch: %s %s" % (method, url))
 		if body:
 			print("Body: %s" % body)
@@ -1146,7 +1145,7 @@ class IServiceVersionObject(IServiceObject):
 
 
 class FastlyObject(object):
-	def __init__(self, conn, data):  
+	def __init__(self, conn, data):
 		self._conn = conn
 		self._data = data or {}
 
@@ -1164,7 +1163,7 @@ class FastlyObject(object):
 
 	def __str__(self):
 		return str(self._data)
-	
+
 	def __repr__(self):
 		return repr(self._data)
 
@@ -1221,16 +1220,16 @@ class FastlyBackend(FastlyObject, IServiceVersionObject):
 		"healthcheck",
 		"comment",
 		"override_host",
-                "ssl_cert_hostname",
-                "ssl_sni_hostname",
+		"ssl_cert_hostname",
+		"ssl_sni_hostname",
 		"min_tls_version",
 		"max_tls_version",
 	]
 
 	@property
 	def healthcheck(self):
-                if not self.__getattr__('healthcheck'):
-                        return None
+		if not self.__getattr__('healthcheck'):
+			return None
 		return self._conn.get_healthcheck(self.service_id, self.version, self.__getattr__("healthcheck"))
 
 
@@ -1248,7 +1247,7 @@ class FastlyCacheSettings(FastlyObject, IServiceVersionObject):
 
 
 class FastlyCondition(FastlyObject, IServiceVersionObject):
-	"""Conditions are used to control when and how other objects are used in a service configuration. They contain a statement that evaluates to either true or false and is used to determine whether the condition is met. 
+	"""Conditions are used to control when and how other objects are used in a service configuration. They contain a statement that evaluates to either true or false and is used to determine whether the condition is met.
 
 	Depending on the type of the condition, the statment field can make reference to the Varnish Variables req, resp, and/or beresp."""
 	FIELDS = [
@@ -1258,7 +1257,7 @@ class FastlyCondition(FastlyObject, IServiceVersionObject):
 		"type",
 		"statement",
 		"priority",
-                "comment",
+		"comment",
 	]
 
 
@@ -1301,7 +1300,7 @@ class FastlyDirector(FastlyObject, IServiceVersionObject, IDateStampedObject):
 		"deleted",
 		"capacity",
 		"comment",
-                "backends",
+		"backends",
 	]
 
 
@@ -1521,12 +1520,12 @@ class FastlySyslog(FastlyObject, IServiceVersionObject, IDateStampedObject):
 
 class FastlyUser(FastlyObject, IDateStampedObject):
 	FIELDS = [
-		"name", 
-		"created_at", 
-		"updated_at", 
-		"role", 
-		"id", 
-		"email_hash", 
+		"name",
+		"created_at",
+		"updated_at",
+		"role",
+		"id",
+		"email_hash",
 		"customer_id",
 		"require_new_password",
 		"login",
